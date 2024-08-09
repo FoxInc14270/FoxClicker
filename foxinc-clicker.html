@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renard Clicker</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            position: relative;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        #fox-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        #fox {
+            width: 750px;
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out;
+            border: 3px solid black;
+            border-radius: 15px;
+        }
+
+        #fox:active {
+            transform: scale(0.9);
+        }
+
+        #counter {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+
+        #separator {
+            width: 10px;
+            height: 100vh;
+            background-color: black;
+            position: absolute;
+            left: calc(100% - 200px - 20px - 10px);
+            top: 0;
+        }
+
+        #upgrades-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            position: fixed;
+            right: 10px;
+            top: 10px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: 3px solid black;
+            border-radius: 10px;
+            width: 200px;
+        }
+
+        button:disabled {
+            background-color: #888;
+            cursor: not-allowed;
+            border: 3px solid black;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="fox-container">
+            <img id="fox" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFona3rZ06KWlPeTFTuCkJWItP6WS8A549Vg&s" alt="Renard">
+            <div id="counter">Clics: 0</div>
+        </div>
+
+        <div id="separator"></div>
+
+        <div id="upgrades-container">
+            <button id="buyAutoClicker" disabled>Acheter Auto-Clicker (100 clics)</button>
+            <button id="buyClickValue" disabled>Acheter Puissance de Clics (150 clics)</button>
+        </div>
+    </div>
+
+    <script>
+        let count = 0;
+        let increment = 1;
+        let autoClicker = 0;
+        let autoClickerCost = 100;
+        let clickValueUpgradeCost = 150;
+        let clickValueMultiplier = 1;
+        let autoClickerInterval = null;
+
+        function saveGame() {
+            localStorage.setItem('clickCount', count);
+            localStorage.setItem('increment', increment);
+            localStorage.setItem('autoClicker', autoClicker);
+            localStorage.setItem('autoClickerCost', autoClickerCost);
+            localStorage.setItem('clickValueUpgradeCost', clickValueUpgradeCost);
+            localStorage.setItem('clickValueMultiplier', clickValueMultiplier);
+        }
+
+        function loadGame() {
+            count = parseInt(localStorage.getItem('clickCount')) || 0;
+            increment = parseInt(localStorage.getItem('increment')) || 1;
+            autoClicker = parseInt(localStorage.getItem('autoClicker')) || 0;
+            autoClickerCost = parseInt(localStorage.getItem('autoClickerCost')) || 100;
+            clickValueUpgradeCost = parseInt(localStorage.getItem('clickValueUpgradeCost')) || 150;
+            clickValueMultiplier = parseInt(localStorage.getItem('clickValueMultiplier')) || 1;
+        }
+
+        function checkUpgrades() {
+            const autoClickerButton = document.getElementById('buyAutoClicker');
+            const clickValueButton = document.getElementById('buyClickValue');
+            
+            autoClickerButton.innerText = `Acheter Auto-Clicker (${autoClickerCost} clics)`;
+            clickValueButton.innerText = `Acheter Puissance de Clics (${clickValueUpgradeCost} clics)`;
+            
+            autoClickerButton.disabled = count < autoClickerCost;
+            clickValueButton.disabled = count < clickValueUpgradeCost;
+        }
+
+        function initGame() {
+            loadGame();
+            document.getElementById('counter').innerText = `Clics: ${count}`;
+            checkUpgrades();
+        }
+
+        document.getElementById('fox').addEventListener('click', function() {
+            count += increment * clickValueMultiplier;
+            document.getElementById('counter').innerText = `Clics: ${count}`;
+            saveGame();
+            checkUpgrades();
+        });
+
+        document.getElementById('buyAutoClicker').addEventListener('click', function() {
+            if (count >= autoClickerCost) {
+                count -= autoClickerCost;
+                autoClicker++;
+                autoClickerCost = Math.floor(autoClickerCost * 1.5);
+                document.getElementById('counter').innerText = `Clics: ${count}`;
+                saveGame();
+                checkUpgrades();
+                
+                if (autoClickerInterval) {
+                    clearInterval(autoClickerInterval);
+                }
+                autoClickerInterval = setInterval(function() {
+                    count += autoClicker;
+                    document.getElementById('counter').innerText = `Clics: ${count}`;
+                    saveGame();
+                }, 1000);
+            }
+        });
+
+        document.getElementById('buyClickValue').addEventListener('click', function() {
+            if (count >= clickValueUpgradeCost) {
+                count -= clickValueUpgradeCost;
+                clickValueMultiplier += 1;
+                clickValueUpgradeCost = Math.floor(clickValueUpgradeCost * 1.75); // Augmentation de 75%
+                document.getElementById('counter').innerText = `Clics: ${count}`;
+                saveGame();
+                checkUpgrades();
+            }
+        });
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
